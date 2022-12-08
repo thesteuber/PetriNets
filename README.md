@@ -1,5 +1,6 @@
 # petri-nets
 ## Domain
+The domain of the petri-net modeling language is an evolution of a simple state machine. While being able to serve as a simple state machine, petri-nets extend a bit beyound in most cases. A petri-net consists of Places, Transitions, Tokens, and Arcs. Tokens are used to make Places much like an integer count. There can never be an arc between two Transitions or two Places directly. The path of a petri-net must follow a Place-Transition-Place-Transition-....-Transition-Place pattern, where - are arcs. A transition is considered enabled if all of the Place that have an arc to the Transition (the Transition's inplaces) have at least 1 token or marking. The transition can then fire and in doing so, removes a marking/token from each of the inplaces in the transition and places a token onto each of its outplaces.
 
 ## Use Cases
 
