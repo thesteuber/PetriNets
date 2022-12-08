@@ -13,13 +13,6 @@
       }
     },
     "visualizers": {
-      "SimulatePetriNet": {
-        "src": "panels/SimulatePetriNet/SimulatePetriNetPanel",
-        "title": "SimulatePetriNet",
-        "panel": "src/visualizers/panels/SimulatePetriNet",
-        "secondary": false,
-        "widget": "src/visualizers/widgets/SimulatePetriNet"
-      },
       "TestSimulate": {
         "src": "panels/TestSimulate/TestSimulatePanel",
         "title": "TestSimulate",

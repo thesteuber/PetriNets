@@ -1,11 +1,5 @@
 [
   {
-    "id": "SimulatePetriNet",
-    "title": "SimulatePetriNet",
-    "panel": "panels/SimulatePetriNet/SimulatePetriNetPanel",
-    "DEBUG_ONLY": false
-  },
-  {
     "id": "TestSimulate",
     "title": "TestSimulate",
     "panel": "panels/TestSimulate/TestSimulatePanel",
