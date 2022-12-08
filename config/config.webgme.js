@@ -12,6 +12,7 @@ config.seedProjects.basePaths.push(__dirname + '/../src/seeds/PetriNet');
 
 
 
+config.visualization.panelPaths.push(__dirname + '/../src/visualizers/panels');
 
 
 config.rest.components['BindingsDocs'] = {
@@ -21,10 +22,12 @@ config.rest.components['BindingsDocs'] = {
 };
 
 // Visualizer descriptors
-
+config.visualization.visualizerDescriptors.push(__dirname + '/../src/visualizers/Visualizers.json');
 // Add requirejs paths
 config.requirejsPaths = {
   'BindingsDocs': 'node_modules/webgme-bindings/src/routers/BindingsDocs',
+  'panels': './src/visualizers/panels',
+  'widgets': './src/visualizers/widgets',
   'webgme-bindings': './node_modules/webgme-bindings/src/common',
   'petri-nets': './src/common'
 };

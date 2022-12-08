@@ -11,6 +11,15 @@
         "src": "src/plugins/PetriNetClassify",
         "test": "test/plugins/PetriNetClassify"
       }
+    },
+    "visualizers": {
+      "SimulatePetriNet": {
+        "src": "panels/SimulatePetriNet/SimulatePetriNetPanel",
+        "title": "SimulatePetriNet",
+        "panel": "src/visualizers/panels/SimulatePetriNet",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/SimulatePetriNet"
+      }
     }
   },
   "dependencies": {
@@ -22,6 +31,7 @@
       }
     },
     "seeds": {},
-    "plugins": {}
+    "plugins": {},
+    "visualizers": {}
   }
 }
