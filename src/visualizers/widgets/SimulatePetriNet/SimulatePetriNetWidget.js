@@ -21,34 +21,34 @@ define(['jointjs', 'css!./styles/SimulatePetriNetWidget.css'], function (joint) 
     }
 
     SimulatePetriNetWidget.prototype._initialize = function () {
-        console.log(joint);
-        var width = this._el.width(),
-            height = this._el.height(),
-            self = this;
+        //console.log(joint);
+        // var width = this._el.width(),
+        //     height = this._el.height(),
+        //     self = this;
 
-        // set widget class
-        this._el.addClass(WIDGET_CLASS);
+        // // // set widget class
+        // this._el.addClass(WIDGET_CLASS);
 
-        this._jointPN = new joint.dia.Graph;
-        this._jointPaper = new joint.dia.Paper({
-            el: this._el,
-            width : width,
-            height: height,
-            model: this._jointPN,
-            interactive: false
-        });
+        // this._jointPN = new joint.dia.Graph;
+        // this._jointPaper = new joint.dia.Paper({
+        //     el: this._el,
+        //     width : width,
+        //     height: height,
+        //     model: this._jointPN,
+        //     interactive: false
+        // });
 
         // add event calls to elements
-        this._jointPaper.on('element:pointerdblclick', function(elementView) {
-            const currentElement = elementView.model;
-            // console.log(currentElement);
-            if (self._webgmeSM) {
-                // console.log(self._webgmeSM.id2state[currentElement.id]);
-                self._setCurrentState(self._webgmeSM.id2state[currentElement.id]);
-            }
-        });
+        // this._jointPaper.on('element:pointerdblclick', function(elementView) {
+        //     const currentElement = elementView.model;
+        //     // console.log(currentElement);
+        //     if (self._webgmeSM) {
+        //         // console.log(self._webgmeSM.id2state[currentElement.id]);
+        //         self._setCurrentState(self._webgmeSM.id2state[currentElement.id]);
+        //     }
+        // });
 
-        this._webgmeSM = null;
+        this._webgmePN = null;
     };
 
     SimulatePetriNetWidget.prototype.onWidgetContainerResize = function (width, height) {
@@ -58,19 +58,21 @@ define(['jointjs', 'css!./styles/SimulatePetriNetWidget.css'], function (joint) 
     // Adding/Removing/Updating items
     SimulatePetriNetWidget.prototype.addNode = function (desc) {
         if (desc) {
-            newNode = this.nodes[desc.id]
-            position = newNode.getRegistry('position')
-            vertex = new joint.shapes.standard.Circle({
-                position: position,
-                size: { width: 20, height: 20 },
-                attrs: {
-                    body: {
-                        fill: '#333333',
-                        cursor: 'pointer'
-                    }
-                }
-            });
-            vertex.addTo(self._jointPN);
+            //newNode = this.nodes[desc.id]
+            //position = newNode.getRegistry('position')
+            // let vertex = null;
+            // vertex = new joint.shapes.standard.Circle({
+            //     //position: position,
+            //     position: {cx:0, cy:0},
+            //     size: { width: 20, height: 20 },
+            //     attrs: {
+            //         body: {
+            //             fill: '#333333',
+            //             cursor: 'pointer'
+            //         }
+            //     }
+            // });
+            // vertex.addTo(self._jointPN);
             // Add node to a table of nodes
             // var node = document.createElement('div'),
             //     label = 'children';
@@ -86,6 +88,85 @@ define(['jointjs', 'css!./styles/SimulatePetriNetWidget.css'], function (joint) 
             // this._el.append(node);
             // node.onclick = this.onNodeClick.bind(this, desc.id);
         }
+    };
+
+    SimulatePetriNetControl.prototype.initMachine = function (petriDescriptor) {
+        const self = this;
+        console.log(petriDescriptor);
+
+        // self._webgmePN = petriDescriptor;
+        // //self._webgmePN.current = self._webgmePN.init;
+        // self._jointPN.clear();
+        // const pn = self._webgmePN;
+        // pn.id2place = {}; // this dictionary will connect the on-screen id to the place id
+        // // first add the places
+        // Object.keys(pn.places).forEach(placeId => {
+        //     let vertex = null;
+        //     vertex = new joint.shapes.standard.Circle({
+        //         position: pn.places[placeId].position,
+        //         size: { width: 60, height: 60 },
+        //         attrs: {
+        //             label : {
+        //                 text: pn.places[placeId].name,
+        //                 //event: 'element:label:pointerdown',
+        //                 fontWeight: 'bold',
+        //                 //cursor: 'text',
+        //                 //style: {
+        //                 //    userSelect: 'text'
+        //                 //}
+        //             },
+        //             body: {
+        //                 strokeWidth: 3,
+        //                 cursor: 'pointer'
+        //             }
+        //         }
+        //     });
+        //     vertex.addTo(self._jointPN);
+        //     pn.places[placeId].joint = vertex;
+        //     pn.id2place[vertex.id] = placeId;
+        // });
+
+        // then create the links
+        // Object.keys(sm.states).forEach(stateId => {
+        //     const state = sm.states[stateId];
+        //     Object.keys(state.next).forEach(event => {
+        //         state.jointNext = state.jointNext || {};
+        //         const link = new joint.shapes.standard.Link({
+        //             source: {id: state.joint.id},
+        //             target: {id: sm.states[state.next[event]].joint.id},
+        //             attrs: {
+        //                 line: {
+        //                     strokeWidth: 2
+        //                 },
+        //                 wrapper: {
+        //                     cursor: 'default'
+        //                 }
+        //             },
+        //             labels: [{
+        //                 position: {
+        //                     distance: 0.5,
+        //                     offset: 0,
+        //                     args: {
+        //                         keepGradient: true,
+        //                         ensureLegibility: true
+        //                     }
+        //                 },
+        //                 attrs: {
+        //                     text: {
+        //                         text: event,
+        //                         fontWeight: 'bold'
+        //                     }
+        //                 }
+        //             }]
+        //         });
+        //         link.addTo(self._jointSM);
+        //         state.jointNext[event] = link;
+        //     })
+        // });
+
+        //now refresh the visualization
+        //self._jointPaper.updateViews();
+        //self._decorateMachine();
     };
 
     SimulatePetriNetWidget.prototype.removeNode = function (gmeId) {

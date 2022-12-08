@@ -4,5 +4,17 @@
     "title": "SimulatePetriNet",
     "panel": "panels/SimulatePetriNet/SimulatePetriNetPanel",
     "DEBUG_ONLY": false
+  },
+  {
+    "id": "TestSimulate",
+    "title": "TestSimulate",
+    "panel": "panels/TestSimulate/TestSimulatePanel",
+    "DEBUG_ONLY": false
+  },
+  {
+    "id": "BoilerPlateSimulator",
+    "title": "BoilerPlateSimulator",
+    "panel": "panels/BoilerPlateSimulator/BoilerPlateSimulatorPanel",
+    "DEBUG_ONLY": false
   }
 ]

@@ -19,6 +19,20 @@
         "panel": "src/visualizers/panels/SimulatePetriNet",
         "secondary": false,
         "widget": "src/visualizers/widgets/SimulatePetriNet"
+      },
+      "TestSimulate": {
+        "src": "panels/TestSimulate/TestSimulatePanel",
+        "title": "TestSimulate",
+        "panel": "src/visualizers/panels/TestSimulate",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/TestSimulate"
+      },
+      "BoilerPlateSimulator": {
+        "src": "panels/BoilerPlateSimulator/BoilerPlateSimulatorPanel",
+        "title": "BoilerPlateSimulator",
+        "panel": "src/visualizers/panels/BoilerPlateSimulator",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/BoilerPlateSimulator"
       }
     }
   },
