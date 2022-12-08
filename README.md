@@ -13,6 +13,21 @@ Second, start mongodb locally by running the `mongod` executable in your mongodb
 Then, run `webgme start` from the project root to start . Finally, navigate to `http://localhost:8888` to start using petri-nets!
 
 ## Start Modeling
+Getting started is easy! First create a new project with a seed of "PetriNet." 
+
+### Examples
+Some example petri-nets will be seen on the project leveraging the seed:
+![image](https://user-images.githubusercontent.com/105262527/206585746-bc076c9d-566a-4fb1-b0d4-79c0059f7971.png)
+
+#### Example 1 is a petri-net implementation of a Point of Sale system, where the markings track stages possible in the process.
+
+#### Example 2 is a small looping example where when simulated, the markings will never deadlock.
+
+#### Example 3 is a buffered message queue implementation.
+
+#### State Machine is an example of a how a petri-net can be used as a State Machine.
+
+#### Workflow Net is an example of a petri net with clear and unique initial and end places, and every node in the petri graph is reachable via the initial place.
 
 ## Features
 ### Test Simulation
