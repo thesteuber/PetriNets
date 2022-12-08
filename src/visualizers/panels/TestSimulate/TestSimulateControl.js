@@ -346,6 +346,40 @@ define([
 
         this._toolbarItems.push(toolBar.addSeparator());
 
+        /************** RESET ****************/
+        this.$btnModelHierarchyUp = toolBar.addButton({
+            title: 'Reset',
+            icon: 'glyphicon glyphicon-repeat',
+            clickFn: function (/*data*/) {
+                //self._widget._reset();
+                self._widget._buildPetriNet(self._nodes, self.id2place, self.id2transition, self.id2t2pa, self.id2p2ta);
+            }
+        });
+        this._toolbarItems.push(this.$btnModelHierarchyUp);
+        this.$btnModelHierarchyUp.hide();
+
+        /************** CLASSIFY ****************/
+        this.$btnModelHierarchyUp = toolBar.addButton({
+            title: 'Classify',
+            icon: '	glyphicon glyphicon-tag',
+            clickFn: function (/*data*/) {
+                const context = self._client.getCurrentPluginContext('PetriNetClassify',self._currentNodeId, []);
+                // !!! it is important to fill out or pass an empty object as the plugin config otherwise we might get errors...
+                context.pluginConfig = {};
+                self._client.runServerPlugin(
+                    'PetriNetClassify', 
+                    context, 
+                    function(err, result){
+                        // here comes any additional processing of results or potential errors.
+                        console.log('plugin err:', err);
+                        console.log('plugin result:', result);
+                });
+            }
+        });
+        this._toolbarItems.push(this.$btnModelHierarchyUp);
+        this.$btnModelHierarchyUp.hide();
+
+
         /************** Go to hierarchical parent button ****************/
         this.$btnModelHierarchyUp = toolBar.addButton({
             title: 'Go to parent',

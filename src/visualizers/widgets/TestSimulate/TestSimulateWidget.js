@@ -18,7 +18,9 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
         this.initNodes = {};
         this._vertexId2Node = {};
         this.places = {};
+        this.initPlaces = {};
         this.transitions = {};
+        this.initTransitions = {};
         this.id2t2pa = {};
         this.id2p2ta = {};
         this._initialize();
@@ -91,6 +93,15 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
         })
     };
 
+    TestSimulateWidget.prototype._reset = function () {
+        alert("reset triggered");
+        const self = this;
+        self.nodes = {...self.initNodes};
+        self.places = {...self.initPlaces};
+        self.transitions = {...self.initTransitions};
+        self._decorateMachine();
+    };
+
     TestSimulateWidget.prototype._decorateMachine = function() {
         const self = this;
         Object.keys(self.places).forEach(placeId => {
@@ -118,21 +129,28 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
             }
             transition.joint.attr('body/fill', bodyFill);
         });
-        if (!atleast1enabled) {alert("There are no enabled transitions!");}
+        if (!atleast1enabled) {
+            alert("There are no enabled transitions!");
+        }
     };
 
     TestSimulateWidget.prototype._buildPetriNet = function (nodes, places, transitions, id2t2pa, id2p2ta) {
         const self = this;
+        self._jointPN.clear();
+        self.nodes = nodes;
+        self.initNodes = {...nodes};
         self.places = places;
+        self.initPlaces = {...places};
         self.transitions = transitions;
+        self.initTransitions = {...transitions};
         self.id2t2pa = id2t2pa;
         self.id2p2ta = id2p2ta;
 
         var id2Node = {};
-        var atleast1enabled = false;
         if (nodes) {
-            //alert(JSON.stringify(desc, null, 2));
             
+            //alert(JSON.stringify(desc, null, 2));
+            var atleast1enabled = false;
             console.log(JSON.stringify(nodes, null, 2));
             nodes.forEach(node => {
                 // console.log("A node....");
@@ -206,7 +224,7 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                     id2Node[node.id] = node;
                 }
             }); 
-
+            
             nodes.forEach(node => {
                 console.log("A node after first round....");
                 console.log(JSON.stringify(node, null, 2));
@@ -247,7 +265,9 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                 }
             }); 
         }
-        if (!atleast1enabled) {alert("There are no enabled transitions!");}
+
+        self._jointPaper.updateViews();
+        //self._decorateMachine();
     };
     
     TestSimulateWidget.prototype.destroyPetriNet = function () {
