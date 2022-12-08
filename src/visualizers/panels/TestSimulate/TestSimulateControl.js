@@ -351,8 +351,8 @@ define([
             title: 'Reset',
             icon: 'glyphicon glyphicon-repeat',
             clickFn: function (/*data*/) {
-                //self._widget._reset();
-                self._widget._buildPetriNet(self._nodes, self.id2place, self.id2transition, self.id2t2pa, self.id2p2ta);
+                self._widget._reset();
+                //self._widget._buildPetriNet(self._nodes, self.id2place, self.id2transition, self.id2t2pa, self.id2p2ta);
             }
         });
         this._toolbarItems.push(this.$btnModelHierarchyUp);

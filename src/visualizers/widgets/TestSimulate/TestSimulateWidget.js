@@ -16,13 +16,17 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
 
         this.nodes = {};
         this.initNodes = {};
-        this._vertexId2Node = {};
         this.places = {};
         this.initPlaces = {};
         this.transitions = {};
         this.initTransitions = {};
+
+        this._vertexId2Node = {};
         this.id2t2pa = {};
+        this.initId2t2pa = {}
         this.id2p2ta = {};
+        this.initId2p2ta = {}
+        this.id2Node = {};
         this._initialize();
 
         
@@ -60,13 +64,16 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
         this._jointPaper.on('element:pointerdblclick', function(elementView) {
             const currentElement = elementView.model;
             let node = self._vertexId2Node[currentElement.id];
-            
+            console.log("clicked");
             if (node.metaType == 'Transition' && node.enabled){
+                console.log("passed vibe check");
                 node.inplaces.forEach(inplaceId => {
+                    console.log("---inplace");
                     let inplace = self.places[inplaceId];
                     inplace.childrenIds.shift();
                 });
                 node.outplaces.forEach(outplaceID => {
+                    console.log("---outplace");
                     let outplace = self.places[outplaceID];
                     outplace.childrenIds.push('tt');
                 });
@@ -86,6 +93,7 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
     TestSimulateWidget.prototype.fireEvent = function (transition) {
         const self = this;
         transition.outLinks.forEach(outLink => {
+            console.log("---outlink");
             const linkView = outLink.findView(self._jointPaper);
             linkView.sendToken(joint.V('circle', { r: 10, fill: 'black' }), {duration:500}, function() {
                self._decorateMachine();
@@ -94,19 +102,29 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
     };
 
     TestSimulateWidget.prototype._reset = function () {
-        alert("reset triggered");
         const self = this;
-        self.nodes = {...self.initNodes};
-        self.places = {...self.initPlaces};
-        self.transitions = {...self.initTransitions};
+        this._vertexId2Node = {};
+        this.id2Node = {};
+        self.nodes = _.cloneDeep(self.initNodes);
+        self.places = _.cloneDeep(self.initPlaces);
+        self.transitions = _.cloneDeep(self.initTransitions);
+        self.id2p2ta = _.cloneDeep(self.initId2p2ta);
+        self.id2t2pa = _.cloneDeep(self.initId2t2pa);
+        
         self._decorateMachine();
     };
 
     TestSimulateWidget.prototype._decorateMachine = function() {
         const self = this;
         Object.keys(self.places).forEach(placeId => {
+            console.log(JSON.stringify(self.places, null, 2));
+            console.log('-------------------------------');
+            console.log(placeId);
             let place = self.places[placeId];
-            place.joint.attr('label/text', place.name + ' - ' + place.childrenIds.length + ' markings');
+            if (place.joint)
+                place.joint.attr('label/text', place.name + ' - ' + place.childrenIds.length + ' markings');
+            else
+                self.visualizePlace(place);
         });
 
         var atleast1enabled = false;
@@ -127,101 +145,169 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                 transition.enabled = true;
                 atleast1enabled = true;
             }
-            transition.joint.attr('body/fill', bodyFill);
+            if (transition.joint)
+                transition.joint.attr('body/fill', bodyFill);
+            else
+                self.visualizeTransition(transition)
         });
         if (!atleast1enabled) {
             alert("There are no enabled transitions!");
         }
+
+        Object.keys(self.id2p2ta).forEach(id2p2taId => {
+            let id2p2taNode = self.id2p2ta[id2p2taId];
+            if (!id2p2taNode.joint)
+                self.visualizeArc(id2p2taNode);
+        });
+
+        console.log("gets to 159");
+        Object.keys(self.id2t2pa).forEach(id2t2paId => {
+            console.log("gets to 161");
+            let id2t2paNode = self.id2t2pa[id2t2paId];
+            if (id2t2paNode.joint == null)
+            {
+                console.log("gets to 165");
+                self.visualizeArc(id2t2paNode);
+            }
+        });
     };
+
+    TestSimulateWidget.prototype.visualizePlace = function(node)
+    {
+        const self = this;
+        const vertex = new joint.shapes.standard.Circle({
+            position: node.position,
+            size: { width: 100, height: 100 },
+            attrs: {
+                root: {
+                    title: 'Place'
+                },
+                body: {
+                    fill: 'white',
+                    cursor: 'pointer'
+                },
+                label: {
+                    textAnchor: 'top',
+                    textVerticalAnchor: 'top',
+                    text: node.name + ' - ' + node.childrenIds.length + ' markings',
+                    fontWeight: 'bold'
+                }
+            }
+        });
+        console.log(JSON.stringify(vertex, null, 2));
+        vertex.addTo(self._jointPN);
+        node.joint = vertex;
+        self._vertexId2Node[vertex.id] = node;
+        self.id2Node[node.id] = node;
+    }
+
+    TestSimulateWidget.prototype.visualizeTransition = function(node)
+    {
+        const self = this;
+        var enabled = true;
+        node.inplaces.forEach(inplaceId => {
+            let inplace = self.places[inplaceId];
+            if (inplace.childrenIds.length == 0){
+                enabled = false;
+            }
+        });
+        var bodyFill = '#333333';
+        if (enabled) 
+        {
+            bodyFill = '#00b200';
+            node.enabled = true;
+        }
+        const vertex = new joint.shapes.standard.Rectangle({
+            position: node.position,
+            size: { width: 20, height: 50 },
+            attrs: {
+                root: {
+                    title: 'Place'
+                },
+                body: {
+                    fill: bodyFill,
+                    cursor: 'pointer'
+                },
+                label: {
+                    textAnchor: 'top',
+                    textVerticalAnchor: 'top',
+                    text: node.name,
+                    fontWeight: 'bold'
+                }
+            }
+        });
+        console.log(JSON.stringify(vertex, null, 2));
+        vertex.addTo(self._jointPN);
+        node.joint = vertex;
+        self._vertexId2Node[vertex.id] = node;
+        self.id2Node[node.id] = node;
+    }
+
+    TestSimulateWidget.prototype.visualizeArc = function(node)
+    {
+        const self = this;
+        const link = new joint.shapes.standard.Link({
+            source: {id: self.id2Node[node.src].joint.id},
+            target: {id: self.id2Node[node.dst].joint.id},
+            attrs: {
+                line: {
+                    strokeWidth: 2
+                },
+                wrapper: {
+                    cursor: 'default'
+                }
+            },
+            labels: [{
+                position: {
+                    distance: 0.5,
+                    offset: 0,
+                    args: {
+                        keepGradient: true,
+                        ensureLegibility: true
+                    }
+                },
+                attrs: {
+                    text: {
+                        fontWeight: 'bold'
+                    }
+                }
+            }]
+        });
+        link.addTo(self._jointPN);
+        node.joint = link;
+        if (node.metaType == "Transition to Place Arc"){
+            let transition1 = self.id2Node[node.src];
+            transition1.outLinks.push(link);
+        }
+    }
 
     TestSimulateWidget.prototype._buildPetriNet = function (nodes, places, transitions, id2t2pa, id2p2ta) {
         const self = this;
         self._jointPN.clear();
         self.nodes = nodes;
-        self.initNodes = {...nodes};
+        self.initNodes = _.cloneDeep(nodes);
+        console.log('---------------------------------------------------------------------------------------------');
+        console.log(self.nodes === self.initNodes);
         self.places = places;
-        self.initPlaces = {...places};
+        self.initPlaces = _.cloneDeep(places);
         self.transitions = transitions;
-        self.initTransitions = {...transitions};
+        self.initTransitions = _.cloneDeep(transitions);
         self.id2t2pa = id2t2pa;
+        self.initId2t2pa = _.cloneDeep(id2t2pa);
         self.id2p2ta = id2p2ta;
+        self.initId2p2ta = _.cloneDeep(id2p2ta);
 
-        var id2Node = {};
         if (nodes) {
             
             //alert(JSON.stringify(desc, null, 2));
             var atleast1enabled = false;
             console.log(JSON.stringify(nodes, null, 2));
             nodes.forEach(node => {
-                // console.log("A node....");
-                // console.log(JSON.stringify(node, null, 2));
                 if (node.metaType == "Place"){
-                    const vertex = new joint.shapes.standard.Circle({
-                        position: node.position,
-                        size: { width: 100, height: 100 },
-                        attrs: {
-                            root: {
-                                title: 'Place'
-                            },
-                            body: {
-                                fill: 'white',
-                                cursor: 'pointer'
-                            },
-                            label: {
-                                textAnchor: 'top',
-                                textVerticalAnchor: 'top',
-                                text: node.name + ' - ' + node.childrenIds.length + ' markings',
-                                fontWeight: 'bold'
-                            }
-                        }
-                    });
-                    console.log(JSON.stringify(vertex, null, 2));
-                    vertex.addTo(self._jointPN);
-                    node.joint = vertex;
-                    self._vertexId2Node[vertex.id] = node;
-                    id2Node[node.id] = node;
+                    self.visualizePlace(node);
                 }
                 else if (node.metaType == "Transition"){
-                    var enabled = true;
-                    console.log("PLACES");
-                    console.log(JSON.stringify(places, null, 2));
-                    node.inplaces.forEach(inplaceId => {
-                        let inplace = places[inplaceId];
-                        if (inplace.childrenIds.length == 0){
-                            enabled = false;
-                        }
-                    });
-                    var bodyFill = '#333333';
-                    if (enabled) 
-                    {
-                        bodyFill = '#00b200';
-                        node.enabled = true;
-                        atleast1enabled = true;
-                    }
-                    const vertex = new joint.shapes.standard.Rectangle({
-                        position: node.position,
-                        size: { width: 20, height: 50 },
-                        attrs: {
-                            root: {
-                                title: 'Place'
-                            },
-                            body: {
-                                fill: bodyFill,
-                                cursor: 'pointer'
-                            },
-                            label: {
-                                textAnchor: 'top',
-                                textVerticalAnchor: 'top',
-                                text: node.name,
-                                fontWeight: 'bold'
-                            }
-                        }
-                    });
-                    console.log(JSON.stringify(vertex, null, 2));
-                    vertex.addTo(self._jointPN);
-                    node.joint = vertex;
-                    self._vertexId2Node[vertex.id] = node;
-                    id2Node[node.id] = node;
+                    self.visualizeTransition(node);
                 }
             }); 
             
@@ -230,38 +316,7 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                 console.log(JSON.stringify(node, null, 2));
 
                 if (node.metaType == "Transition to Place Arc" || node.metaType == "Place to Transition Arc"){
-                    const link = new joint.shapes.standard.Link({
-                        source: {id: id2Node[node.src].joint.id},
-                        target: {id: id2Node[node.dst].joint.id},
-                        attrs: {
-                            line: {
-                                strokeWidth: 2
-                            },
-                            wrapper: {
-                                cursor: 'default'
-                            }
-                        },
-                        labels: [{
-                            position: {
-                                distance: 0.5,
-                                offset: 0,
-                                args: {
-                                    keepGradient: true,
-                                    ensureLegibility: true
-                                }
-                            },
-                            attrs: {
-                                text: {
-                                    fontWeight: 'bold'
-                                }
-                            }
-                        }]
-                    });
-                    link.addTo(self._jointPN);
-                    if (node.metaType == "Transition to Place Arc"){
-                        let transition1 = id2Node[node.src];
-                        transition1.outLinks.push(link);
-                    }
+                    self.visualizeArc(node);
                 }
             }); 
         }
