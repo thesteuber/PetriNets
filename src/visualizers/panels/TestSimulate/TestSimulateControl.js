@@ -24,6 +24,10 @@ define([
         // Initialize core collections and variables
         this._widget = options.widget;
         this._nodes = new Array();
+        this.id2t2pa = {};
+        this.id2p2ta = {};
+        this.id2place = {}
+        this.id2transition = {};
         
         this._currentNodeId = null;
         this._currentNodeParentId = undefined;
@@ -161,9 +165,36 @@ define([
             META[node.getAttribute('name')] = node.getId(); //we just need the id...
         });
 
-        console.log(JSON.stringify(self._nodes, null, 2));
+        console.log("PLACES BEFORE WIDGET");
+        console.log(JSON.stringify(self.id2place, null, 2));
 
-        this._widget._buildPetriNet(self._nodes);
+        console.log("Transitions BEFORE WIDGET");
+        console.log(JSON.stringify(self.id2transition, null, 2));
+
+        console.log("id2t2pa BEFORE WIDGET");
+        console.log(JSON.stringify(self.id2t2pa, null, 2));
+
+        console.log("id2p2ta BEFORE WIDGET");
+        console.log(JSON.stringify(self.id2p2ta, null, 2));
+        
+        Object.keys(self.id2p2ta).forEach(nodeid => {
+            var nodeP2T = self.id2p2ta[nodeid];
+            let place = self.id2place[nodeP2T.src];
+            let transition = self.id2transition[nodeP2T.dst];
+            transition.inplaces.push(place.id);
+            place.outtransitions.push(transition.id);
+        })
+        Object.keys(self.id2t2pa).forEach(nodeid => {
+            var nodeT2P = self.id2t2pa[nodeid];
+            let transition = self.id2transition[nodeT2P.src];
+            let place = self.id2place[nodeT2P.dst];
+            transition.outplaces.push(place.id);
+            place.intransitions.push(transition.id);
+        })
+        
+
+
+        this._widget._buildPetriNet(self._nodes, self.id2place, self.id2transition, self.id2t2pa, self.id2p2ta);
 
         // var description = this._getObjectDescriptor(gmeId);
         // console.log(JSON.stringify(description, null, 2));
@@ -184,33 +215,49 @@ define([
         const node = self._client.getNode(description.id);
         var nodeType = "";
         
+        
+        var betterNode = {};
         if (node.isTypeOf(META['Place']))
+        {
+            betterNode.intransitions = [];
+            betterNode.outtransitions = [];
+            self.id2place[description.id] = betterNode;
+            console.log("node id = "+description.id);
             nodeType = "Place"
+        }
         if (node.isTypeOf(META['Petri Net']))
             nodeType = "Petri Net"
         if (node.isTypeOf(META['Transition']))
+        {
+            betterNode.inplaces = [];
+            betterNode.outplaces = [];
+            betterNode.outLinks = [];
+            self.id2transition[description.id] = betterNode;
             nodeType = "Transition"
+        }
         if (node.isTypeOf(META['Token']))
             nodeType = "Token"
         if (node.isTypeOf(META['Transition to Place Arc']))
-            nodeType = "Transition to Place Arc"
+        {
+            self.id2t2pa[description.id] = betterNode;
+            nodeType = "Transition to Place Arc";
+        }
         if (node.isTypeOf(META['Place to Transition Arc']))
-            nodeType = "Place to Transition Arc"
-
-        console.log(JSON.stringify(description, null, 2));
-        
-        const betterNode = {
-            id: description.id,
-            name: description.name,
-            childrenIds: description.childrenIds,
-            parentId: description.parentId,
-            isConnection: description.isConnection,
-            metaType: nodeType,
-            position: node.getRegistry('position'),
-            src: node.getPointerId('src'),
-            dst: node.getPointerId('dst')
+        {
+            self.id2p2ta[description.id] = betterNode;
+            nodeType = "Place to Transition Arc";
         }
         
+        betterNode.id = description.id;
+        betterNode.name = description.name,
+        betterNode.childrenIds = description.childrenIds,
+        betterNode.parentId = description.parentId,
+        betterNode.isConnection = description.isConnection,
+        betterNode.metaType = nodeType,
+        betterNode.position = node.getRegistry('position'),
+        betterNode.src = node.getPointerId('src'),
+        betterNode.dst = node.getPointerId('dst')
+
         this._nodes.push(betterNode);
     };
 

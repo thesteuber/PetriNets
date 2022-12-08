@@ -15,8 +15,15 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
         this._el = container;
 
         this.nodes = {};
+        this.initNodes = {};
+        this._vertexId2Node = {};
+        this.places = {};
+        this.transitions = {};
+        this.id2t2pa = {};
+        this.id2p2ta = {};
         this._initialize();
 
+        
         this._logger.debug('ctor finished');
     }
 
@@ -32,11 +39,11 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
         //this._el.append('<h3>TestSimulate Events:</h3>');
 
         // Registering to events can be done with jQuery (as normal)
-        this._el.on('dblclick', function (event) {
-            event.stopPropagation();
-            event.preventDefault();
-            self.onBackgroundDblClick();
-        });
+        // this._el.on('dblclick', function (event) {
+        //     event.stopPropagation();
+        //     event.preventDefault();
+        //     self.onBackgroundDblClick();
+        // });
 
         this._jointPN = new joint.dia.Graph;
         this._jointPaper = new joint.dia.Paper({
@@ -47,14 +54,26 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
             interactive: false
         });
 
-        //add event calls to elements
+        // add event calls to elements
         this._jointPaper.on('element:pointerdblclick', function(elementView) {
             const currentElement = elementView.model;
-            // console.log(currentElement);
-            //if (self._webgmeSM) {
-                // console.log(self._webgmeSM.id2state[currentElement.id]);
-                //self._setCurrentState(self._webgmeSM.id2state[currentElement.id]);
-            //}
+            let node = self._vertexId2Node[currentElement.id];
+            
+            if (node.metaType == 'Transition' && node.enabled){
+                node.inplaces.forEach(inplaceId => {
+                    let inplace = self.places[inplaceId];
+                    inplace.childrenIds.shift();
+                });
+                node.outplaces.forEach(outplaceID => {
+                    let outplace = self.places[outplaceID];
+                    outplace.childrenIds.push('tt');
+                });
+                self.fireEvent(node);
+            }
+            // if (self._webgmeSM) {
+            //     // console.log(self._webgmeSM.id2state[currentElement.id]);
+            //     self._setCurrentState(self._webgmeSM.id2state[currentElement.id]);
+            // }
         });
     };
 
@@ -62,18 +81,62 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
         this._logger.debug('Widget is resizing...');
     };
 
-
-    TestSimulateWidget.prototype._buildPetriNet = function (nodes) {
+    TestSimulateWidget.prototype.fireEvent = function (transition) {
         const self = this;
-        var vertexId2Node = {};
+        transition.outLinks.forEach(outLink => {
+            const linkView = outLink.findView(self._jointPaper);
+            linkView.sendToken(joint.V('circle', { r: 10, fill: 'black' }), {duration:500}, function() {
+               self._decorateMachine();
+            });
+        })
+    };
+
+    TestSimulateWidget.prototype._decorateMachine = function() {
+        const self = this;
+        Object.keys(self.places).forEach(placeId => {
+            let place = self.places[placeId];
+            place.joint.attr('label/text', place.name + ' - ' + place.childrenIds.length + ' markings');
+        });
+
+        var atleast1enabled = false;
+        Object.keys(self.transitions).forEach(transitionId => {
+            let transition = self.transitions[transitionId];
+            var enabled = true;
+            transition.inplaces.forEach(inplaceId => {
+                let inplace = self.places[inplaceId];
+                if (inplace.childrenIds.length == 0){
+                    enabled = false;
+                }
+            });
+            var bodyFill = '#333333';
+            transition.enabled = false;
+            if (enabled) 
+            {
+                bodyFill = '#00b200';
+                transition.enabled = true;
+                atleast1enabled = true;
+            }
+            transition.joint.attr('body/fill', bodyFill);
+        });
+        if (!atleast1enabled) {alert("There are no enabled transitions!");}
+    };
+
+    TestSimulateWidget.prototype._buildPetriNet = function (nodes, places, transitions, id2t2pa, id2p2ta) {
+        const self = this;
+        self.places = places;
+        self.transitions = transitions;
+        self.id2t2pa = id2t2pa;
+        self.id2p2ta = id2p2ta;
+
         var id2Node = {};
+        var atleast1enabled = false;
         if (nodes) {
             //alert(JSON.stringify(desc, null, 2));
             
             console.log(JSON.stringify(nodes, null, 2));
             nodes.forEach(node => {
-                console.log("A node....");
-                console.log(JSON.stringify(node, null, 2));
+                // console.log("A node....");
+                // console.log(JSON.stringify(node, null, 2));
                 if (node.metaType == "Place"){
                     const vertex = new joint.shapes.standard.Circle({
                         position: node.position,
@@ -89,7 +152,7 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                             label: {
                                 textAnchor: 'top',
                                 textVerticalAnchor: 'top',
-                                text: node.name,
+                                text: node.name + ' - ' + node.childrenIds.length + ' markings',
                                 fontWeight: 'bold'
                             }
                         }
@@ -97,10 +160,26 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                     console.log(JSON.stringify(vertex, null, 2));
                     vertex.addTo(self._jointPN);
                     node.joint = vertex;
-                    vertexId2Node[vertex.id] = node;
+                    self._vertexId2Node[vertex.id] = node;
                     id2Node[node.id] = node;
                 }
                 else if (node.metaType == "Transition"){
+                    var enabled = true;
+                    console.log("PLACES");
+                    console.log(JSON.stringify(places, null, 2));
+                    node.inplaces.forEach(inplaceId => {
+                        let inplace = places[inplaceId];
+                        if (inplace.childrenIds.length == 0){
+                            enabled = false;
+                        }
+                    });
+                    var bodyFill = '#333333';
+                    if (enabled) 
+                    {
+                        bodyFill = '#00b200';
+                        node.enabled = true;
+                        atleast1enabled = true;
+                    }
                     const vertex = new joint.shapes.standard.Rectangle({
                         position: node.position,
                         size: { width: 20, height: 50 },
@@ -109,7 +188,7 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                                 title: 'Place'
                             },
                             body: {
-                                fill: '#333333',
+                                fill: bodyFill,
                                 cursor: 'pointer'
                             },
                             label: {
@@ -123,7 +202,7 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                     console.log(JSON.stringify(vertex, null, 2));
                     vertex.addTo(self._jointPN);
                     node.joint = vertex;
-                    vertexId2Node[vertex.id] = node;
+                    self._vertexId2Node[vertex.id] = node;
                     id2Node[node.id] = node;
                 }
             }); 
@@ -161,9 +240,14 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                         }]
                     });
                     link.addTo(self._jointPN);
+                    if (node.metaType == "Transition to Place Arc"){
+                        let transition1 = id2Node[node.src];
+                        transition1.outLinks.push(link);
+                    }
                 }
             }); 
         }
+        if (!atleast1enabled) {alert("There are no enabled transitions!");}
     };
     
     TestSimulateWidget.prototype.destroyPetriNet = function () {
