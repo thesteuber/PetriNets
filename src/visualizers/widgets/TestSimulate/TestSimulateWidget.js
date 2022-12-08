@@ -64,16 +64,12 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
         this._jointPaper.on('element:pointerdblclick', function(elementView) {
             const currentElement = elementView.model;
             let node = self._vertexId2Node[currentElement.id];
-            console.log("clicked");
             if (node.metaType == 'Transition' && node.enabled){
-                console.log("passed vibe check");
                 node.inplaces.forEach(inplaceId => {
-                    console.log("---inplace");
                     let inplace = self.places[inplaceId];
                     inplace.childrenIds.shift();
                 });
                 node.outplaces.forEach(outplaceID => {
-                    console.log("---outplace");
                     let outplace = self.places[outplaceID];
                     outplace.childrenIds.push('tt');
                 });
@@ -121,8 +117,13 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
             console.log('-------------------------------');
             console.log(placeId);
             let place = self.places[placeId];
-            if (place.joint)
-                place.joint.attr('label/text', place.name + ' - ' + place.childrenIds.length + ' markings');
+            if (place.joint){
+                if (place.childrenIds.length > 12)
+                    place.joint.attr('label/text', place.name + ' - ' + place.childrenIds.length + ' markings');
+                else 
+                    place.joint.attr('label/text', place.name);
+                self.visualizePlaceMarkings(place);
+            }
             else
                 self.visualizePlace(place);
         });
@@ -172,9 +173,49 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
         });
     };
 
+    TestSimulateWidget.prototype.visualizePlaceMarkings = function(place)
+    {
+        const self = this;
+        if (place.markings){
+            place.markings.forEach(markingJoin => {
+                markingJoin.remove();
+            });
+        }
+        if (place.childrenIds.length > 12) return;
+        place.markings = [];
+        var i = 0;
+        place.childrenIds.forEach(childID => {
+            const vertex = new joint.shapes.standard.Circle({
+                position: {x: place.position.x+20, y: place.position.y+(i*10)},
+                size: { width: 6, height: 6},
+                attrs: {
+                    root: {
+                        title: 'Place'
+                    },
+                    body: {
+                        fill: 'blue',
+                        cursor: 'pointer'
+                    },
+                    label: {
+                        textAnchor: 'top',
+                        textVerticalAnchor: 'top',
+                        fontWeight: 'bold'
+                    }
+                }
+            });
+            vertex.addTo(self._jointPN);
+            place.markings.push(vertex);
+            self._vertexId2Node[vertex.id] = place;
+            self.id2Node[place.id] = place;
+            i = i + 1;
+        });
+    }
+
     TestSimulateWidget.prototype.visualizePlace = function(node)
     {
         const self = this;
+        var placeText = node.name;
+        if (node.childrenIds.length > 12) placeText = placeText + ' - ' + node.childrenIds.length + ' markings';
         const vertex = new joint.shapes.standard.Circle({
             position: node.position,
             size: { width: 100, height: 100 },
@@ -189,7 +230,7 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
                 label: {
                     textAnchor: 'top',
                     textVerticalAnchor: 'top',
-                    text: node.name + ' - ' + node.childrenIds.length + ' markings',
+                    text: placeText,
                     fontWeight: 'bold'
                 }
             }
@@ -199,6 +240,8 @@ define(['jointjs', 'css!./styles/TestSimulateWidget.css'], function (joint) {
         node.joint = vertex;
         self._vertexId2Node[vertex.id] = node;
         self.id2Node[node.id] = node;
+
+        self.visualizePlaceMarkings(node);
     }
 
     TestSimulateWidget.prototype.visualizeTransition = function(node)
