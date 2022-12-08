@@ -5,6 +5,12 @@
       "PetriNet": {
         "src": "src/seeds/PetriNet"
       }
+    },
+    "plugins": {
+      "PetriNetClassify": {
+        "src": "src/plugins/PetriNetClassify",
+        "test": "test/plugins/PetriNetClassify"
+      }
     }
   },
   "dependencies": {
@@ -15,6 +21,7 @@
         "mount": "bindings-docs"
       }
     },
-    "seeds": {}
+    "seeds": {},
+    "plugins": {}
   }
 }
